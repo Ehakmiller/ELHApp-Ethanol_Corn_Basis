@@ -250,6 +250,57 @@ th {
   color: var(--accent-dark);
 }
 
+.basis-legend {
+  min-width: 138px;
+  padding: 10px 11px;
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid rgba(27, 39, 51, 0.14);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(21, 34, 50, 0.18);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.basis-legend-title {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.basis-legend-items {
+  display: grid;
+  gap: 6px;
+}
+
+.basis-legend-row {
+  display: grid;
+  grid-template-columns: 14px 32px minmax(52px, auto);
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.basis-legend-swatch {
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(27, 39, 51, 0.35);
+  border-radius: 3px;
+}
+
+.basis-legend-label {
+  color: var(--muted);
+}
+
+.basis-legend-value {
+  font-weight: 700;
+  text-align: right;
+}
+
+.basis-legend-empty {
+  color: var(--muted);
+}
+
 .empty-row {
   color: var(--muted);
   text-align: center;
@@ -289,5 +340,10 @@ th {
   #basisMap {
     height: 520px;
     min-height: 360px;
+  }
+
+  .basis-legend {
+    margin: 10px 10px 0 0 !important;
+    padding: 8px 9px;
   }
 }

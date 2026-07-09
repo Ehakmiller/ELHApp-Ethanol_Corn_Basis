@@ -17,6 +17,8 @@ const state = {
   chartRequestId: 0,
   map: null,
   markerLayer: null,
+  legendControl: null,
+  legendEl: null,
   chart: null,
 };
 
@@ -63,8 +65,11 @@ function numeric(value) {
 }
 
 function formatBasis(value) {
-  const num = numeric(value);
-  return num === null ? "--" : num.toFixed(2);
+  if (value == null || isNaN(value)) return "--";
+  const num = Number(value);
+  return num < 0
+    ? `($${Math.abs(num).toFixed(2)})`
+    : `$${num.toFixed(2)}`;
 }
 
 function formatPrice(value) {
@@ -131,6 +136,19 @@ function initMap() {
   }).addTo(state.map);
 
   state.markerLayer = L.layerGroup().addTo(state.map);
+  initLegend();
+}
+
+function initLegend() {
+  state.legendControl = L.control({ position: "topright" });
+  state.legendControl.onAdd = () => {
+    state.legendEl = L.DomUtil.create("div", "basis-legend");
+    L.DomEvent.disableClickPropagation(state.legendEl);
+    L.DomEvent.disableScrollPropagation(state.legendEl);
+    return state.legendEl;
+  };
+  state.legendControl.addTo(state.map);
+  updateLegend([]);
 }
 
 function basisColor(value) {
@@ -191,6 +209,48 @@ function renderMap() {
   } else {
     state.map.setView(CONFIG.DEFAULT_CENTER, CONFIG.DEFAULT_ZOOM);
   }
+  updateLegend(state.filteredRows);
+}
+
+function basisStats(rows) {
+  const values = rows.map((row) => numeric(row.basis)).filter((value) => value !== null);
+  if (!values.length) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const avg = values.reduce((acc, value) => acc + value, 0) / values.length;
+  const mid = min < 0 && max > 0 ? 0 : avg;
+  return { min, mid, max, avg, count: values.length };
+}
+
+function updateLegend(rows) {
+  if (!state.legendEl) return;
+  const stats = basisStats(rows);
+  if (!stats) {
+    state.legendEl.innerHTML = `
+      <div class="basis-legend-title">Corn Basis ($/bu)</div>
+      <div class="basis-legend-empty">No numeric basis</div>
+    `;
+    return;
+  }
+
+  const items = [
+    { label: "High", value: stats.max },
+    { label: stats.min < 0 && stats.max > 0 ? "Zero" : "Avg", value: stats.mid },
+    { label: "Low", value: stats.min },
+  ];
+
+  state.legendEl.innerHTML = `
+    <div class="basis-legend-title">Corn Basis ($/bu)</div>
+    <div class="basis-legend-items">
+      ${items.map((item) => `
+        <div class="basis-legend-row">
+          <span class="basis-legend-swatch" style="background:${basisColor(item.value)}"></span>
+          <span class="basis-legend-label">${item.label}</span>
+          <span class="basis-legend-value">${formatBasis(item.value)}</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
 
 function currentFilters() {
@@ -230,9 +290,9 @@ function renderSummary() {
     els.highBasis.textContent = "--";
   } else {
     const sum = basisValues.reduce((acc, value) => acc + value, 0);
-    els.avgBasis.textContent = (sum / basisValues.length).toFixed(2);
-    els.lowBasis.textContent = Math.min(...basisValues).toFixed(2);
-    els.highBasis.textContent = Math.max(...basisValues).toFixed(2);
+    els.avgBasis.textContent = formatBasis(sum / basisValues.length);
+    els.lowBasis.textContent = formatBasis(Math.min(...basisValues));
+    els.highBasis.textContent = formatBasis(Math.max(...basisValues));
   }
   els.plantCount.textContent = plantIds.size.toLocaleString();
 }
@@ -356,6 +416,11 @@ function drawChart(points, caption) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => `Basis: ${formatBasis(context.parsed.y)}`,
+          },
+        },
       },
       scales: {
         x: {
@@ -363,7 +428,10 @@ function drawChart(points, caption) {
           grid: { display: false },
         },
         y: {
-          title: { display: true, text: "Basis" },
+          title: { display: true, text: "Basis ($/bu)" },
+          ticks: {
+            callback: (value) => formatBasis(value),
+          },
         },
       },
     },
