@@ -1,0 +1,25 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://ehakmiller.github.io",
+          "http://localhost:8080",
+          "http://localhost:8085"
+        ],
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "headers": [
+          "Content-Type"
+        ]
+      },
+      "exposeHeaders": [
+        "Content-Length",
+        "ETag"
+      ],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}
