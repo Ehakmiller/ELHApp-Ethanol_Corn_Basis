@@ -1,7 +1,7 @@
+const DATA_BASE_URL =
+  "https://pub-e1ba77626f844f97953cd74102f37629.r2.dev/corn_basis";
+
 const CONFIG = {
-  // Replace with the public R2 bucket URL when JSON files are uploaded.
-  // Example: "https://pub-example.r2.dev/data/corn_basis"
-  DATA_BASE_URL: "./data/corn_basis",
   DEFAULT_CENTER: [41.9, -93.5],
   DEFAULT_ZOOM: 5,
   BASIS_MIN: -0.5,
@@ -13,12 +13,7 @@ const state = {
   snapshotDate: null,
   snapshotRows: [],
   filteredRows: [],
-  histories: {
-    plant: null,
-    state: null,
-    technology: null,
-    rail: null,
-  },
+  historyRows: null,
   map: null,
   markerLayer: null,
   chart: null,
@@ -45,7 +40,7 @@ const els = {
 };
 
 function dataUrl(path) {
-  return `${CONFIG.DATA_BASE_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+  return `${DATA_BASE_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
 }
 
 async function fetchJson(path) {
@@ -268,13 +263,9 @@ function renderTable() {
 }
 
 async function ensureHistories() {
-  const needed = [];
-  if (!state.histories.plant) needed.push(fetchJson("history_by_plant.json").then((data) => { state.histories.plant = data; }));
-  if (!state.histories.state) needed.push(fetchJson("history_by_state.json").then((data) => { state.histories.state = data; }));
-  if (!state.histories.technology) needed.push(fetchJson("history_by_technology.json").then((data) => { state.histories.technology = data; }));
-  if (!state.histories.rail) needed.push(fetchJson("history_by_rail.json").then((data) => { state.histories.rail = data; }));
-  if (needed.length) {
-    await Promise.all(needed);
+  if (!state.historyRows) {
+    const rows = await fetchJson("history/all_basis_history.json");
+    state.historyRows = rows.map(normalizeRow);
   }
 }
 
@@ -284,7 +275,7 @@ function chartContext() {
   if (filters.state) return { type: "state", value: filters.state, label: filters.state };
   if (filters.technology) return { type: "technology", value: filters.technology, label: filters.technology };
   if (filters.rail) return { type: "rail", value: filters.rail, label: filters.rail };
-  return null;
+  return { type: "industry", value: "", label: "Industry average" };
 }
 
 function selectedText(select) {
@@ -293,10 +284,6 @@ function selectedText(select) {
 
 async function renderChart() {
   const ctxInfo = chartContext();
-  if (!ctxInfo) {
-    drawChart([], "Select a plant, state, technology, or rail line.");
-    return;
-  }
   try {
     await ensureHistories();
   } catch (error) {
@@ -304,25 +291,34 @@ async function renderChart() {
     return;
   }
 
-  let rows = [];
-  let valueField = "avg_basis";
+  let rows = state.historyRows || [];
   if (ctxInfo.type === "plant") {
-    rows = state.histories.plant.filter((row) => row.plant_id === ctxInfo.value);
-    valueField = "basis";
+    rows = rows.filter((row) => row.plant_id === ctxInfo.value);
   } else if (ctxInfo.type === "state") {
-    rows = state.histories.state.filter((row) => row.state === ctxInfo.value);
+    rows = rows.filter((row) => row.state === ctxInfo.value);
   } else if (ctxInfo.type === "technology") {
-    rows = state.histories.technology.filter((row) => row.technology === ctxInfo.value);
+    rows = rows.filter((row) => row.technology === ctxInfo.value);
   } else if (ctxInfo.type === "rail") {
-    rows = state.histories.rail.filter((row) => row.rail_line === ctxInfo.value);
+    rows = rows.filter((row) => Array.isArray(row.rail_lines) && row.rail_lines.includes(ctxInfo.value));
   }
 
-  const points = rows
-    .map((row) => ({ date: row.date, value: numeric(row[valueField]) }))
-    .filter((point) => point.date && point.value !== null)
-    .sort((a, b) => a.date.localeCompare(b.date));
-
+  const points = averageBasisByDate(rows);
   drawChart(points, `${ctxInfo.label} basis history`);
+}
+
+function averageBasisByDate(rows) {
+  const byDate = new Map();
+  rows.forEach((row) => {
+    const value = numeric(row.basis);
+    if (!row.date || value === null) return;
+    const bucket = byDate.get(row.date) || { sum: 0, count: 0 };
+    bucket.sum += value;
+    bucket.count += 1;
+    byDate.set(row.date, bucket);
+  });
+  return [...byDate.entries()]
+    .map(([date, bucket]) => ({ date, value: bucket.sum / bucket.count }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function drawChart(points, caption) {
@@ -426,16 +422,20 @@ function closestSnapshot(daysBack) {
 async function loadSnapshot(date, useLatestPath = false) {
   setStatus(`Loading ${date || "latest"}...`);
   const rows = useLatestPath ? await fetchJson("latest.json") : await fetchJson(`snapshots/${date}.json`);
-  state.snapshotRows = rows.map((row) => ({
-    ...row,
-    plant_id: row.plant_id === null || row.plant_id === undefined ? "" : String(row.plant_id),
-    rail_lines: Array.isArray(row.rail_lines) ? row.rail_lines : [],
-  }));
+  state.snapshotRows = rows.map(normalizeRow);
   state.snapshotDate = date || state.index.latest;
   els.dateSelect.value = state.snapshotDate;
   populateFilters();
   applyFilters();
   setStatus(`Showing ${state.snapshotDate}`);
+}
+
+function normalizeRow(row) {
+  return {
+    ...row,
+    plant_id: row.plant_id === null || row.plant_id === undefined ? "" : String(row.plant_id),
+    rail_lines: Array.isArray(row.rail_lines) ? row.rail_lines : [],
+  };
 }
 
 function wireEvents() {

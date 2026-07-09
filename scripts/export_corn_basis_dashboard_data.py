@@ -23,7 +23,7 @@ DEFAULT_DB_PATH = (
     r"C:\Users\ehakm\OneDrive\Documents\Python Code\Ethanol db"
     r"\Ethanol DB\ethanol_production.db"
 )
-DEFAULT_OUTPUT_DIR = Path("data/corn_basis")
+DEFAULT_OUTPUT_DIR = Path("r2_upload/corn_basis")
 
 SNAPSHOT_FIELDS = [
     "date",
@@ -76,7 +76,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         default=str(DEFAULT_OUTPUT_DIR),
-        help="Output folder for data/corn_basis JSON files.",
+        help="Output folder for R2-ready corn_basis JSON files.",
     )
     parser.add_argument(
         "--max-snapshots",
@@ -191,14 +191,24 @@ def plant_history_records(df: pd.DataFrame) -> list[dict[str, Any]]:
     for row in df.to_dict("records"):
         records.append(
             {
+                "date": clean_text(row.get("date")),
                 "plant_id": clean_text(row.get("plant_id")),
                 "plant_name": clean_text(row.get("plant_name")),
+                "ownership": clean_text(row.get("ownership")),
+                "city": clean_text(row.get("city")),
                 "state": clean_text(row.get("state")),
-                "technology": clean_text(row.get("technology")),
-                "rail_lines": normalize_rail_lines(row.get("rail_lines")),
-                "date": clean_text(row.get("date")),
+                "latitude": to_number(row.get("latitude")),
+                "longitude": to_number(row.get("longitude")),
                 "basis": to_number(row.get("basis")),
                 "flat_price": to_number(row.get("flat_price")),
+                "contract": clean_text(row.get("contract")),
+                "delivery_month": clean_text(row.get("delivery_month")),
+                "capacity_mgy": to_number(row.get("capacity_mgy")),
+                "technology": clean_text(row.get("technology")),
+                "rail_lines": normalize_rail_lines(row.get("rail_lines")),
+                "corn_ci": to_number(row.get("corn_ci")),
+                "fiber_ci": to_number(row.get("fiber_ci")),
+                "source_file": clean_text(row.get("source_file")),
             }
         )
     return records
@@ -286,8 +296,10 @@ def write_json(path: Path, payload: Any, pretty: bool) -> None:
 
 def export_files(df: pd.DataFrame, output_dir: Path, pretty: bool, max_snapshots: int | None) -> tuple[int, str]:
     snapshots_dir = output_dir / "snapshots"
+    history_dir = output_dir / "history"
     output_dir.mkdir(parents=True, exist_ok=True)
     snapshots_dir.mkdir(parents=True, exist_ok=True)
+    history_dir.mkdir(parents=True, exist_ok=True)
 
     dates = sorted(df["date"].dropna().unique(), reverse=True)
     if max_snapshots is not None:
@@ -305,20 +317,7 @@ def export_files(df: pd.DataFrame, output_dir: Path, pretty: bool, max_snapshots
     shutil.copyfile(snapshots_dir / f"{newest}.json", output_dir / "latest.json")
     write_json(output_dir / "index.json", {"latest": newest, "snapshots": dates}, pretty)
 
-    plant_history = df[
-        ["plant_id", "plant_name", "state", "technology", "rail_lines", "date", "basis", "flat_price"]
-    ].copy()
-    write_json(output_dir / "history_by_plant.json", plant_history_records(plant_history), pretty)
-
-    write_json(output_dir / "history_by_state.json", numeric_summary(df, ["state", "date"]), pretty)
-    write_json(output_dir / "history_by_technology.json", numeric_summary(df, ["technology", "date"]), pretty)
-
-    rail = df[["plant_id", "date", "rail_lines", "basis"]].copy()
-    rail["rail_line"] = rail["rail_lines"].apply(normalize_rail_lines)
-    rail = rail.explode("rail_line")
-    rail = rail.dropna(subset=["rail_line"])
-    rail = rail[rail["rail_line"].astype(str).str.len() > 0]
-    write_json(output_dir / "history_by_rail.json", numeric_summary(rail, ["rail_line", "date"]), pretty)
+    write_json(history_dir / "all_basis_history.json", plant_history_records(df), pretty)
     return len(dates), newest
 
 
