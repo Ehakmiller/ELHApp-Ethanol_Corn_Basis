@@ -14,6 +14,7 @@ const state = {
   snapshotRows: [],
   filteredRows: [],
   historyRows: null,
+  chartRequestId: 0,
   map: null,
   markerLayer: null,
   chart: null,
@@ -217,7 +218,7 @@ function applyFilters() {
   renderSummary();
   renderMap();
   renderTable();
-  renderChart();
+  renderChart().catch(handleError);
 }
 
 function renderSummary() {
@@ -283,6 +284,7 @@ function selectedText(select) {
 }
 
 async function renderChart() {
+  const requestId = ++state.chartRequestId;
   const ctxInfo = chartContext();
   try {
     await ensureHistories();
@@ -290,6 +292,7 @@ async function renderChart() {
     drawChart([], "History files are not available.");
     return;
   }
+  if (requestId !== state.chartRequestId) return;
 
   let rows = state.historyRows || [];
   if (ctxInfo.type === "plant") {
@@ -303,7 +306,7 @@ async function renderChart() {
   }
 
   const points = averageBasisByDate(rows);
-  drawChart(points, `${ctxInfo.label} basis history`);
+  drawChart(points, `${ctxInfo.label} basis history (${points.length} dates)`);
 }
 
 function averageBasisByDate(rows) {
@@ -331,7 +334,9 @@ function drawChart(points, caption) {
         data: points.map((point) => point.value),
         borderColor: "#176c6a",
         backgroundColor: "rgba(23, 108, 106, 0.15)",
-        pointRadius: 2,
+        pointRadius: points.length > 80 ? 0 : 2,
+        pointHoverRadius: 4,
+        spanGaps: true,
         tension: 0.2,
       },
     ],
@@ -458,6 +463,7 @@ async function init() {
   wireEvents();
   state.index = await fetchJson("index.json");
   populateDateSelect();
+  await ensureHistories();
   await loadSnapshot(state.index.latest, true);
 }
 

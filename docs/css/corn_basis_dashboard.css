@@ -191,6 +191,12 @@ button.primary {
   padding: 14px;
 }
 
+.chart-panel canvas {
+  display: block;
+  width: 100% !important;
+  height: 260px !important;
+}
+
 .panel-title {
   display: flex;
   justify-content: space-between;
