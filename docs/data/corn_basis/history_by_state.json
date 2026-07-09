@@ -1,0 +1,8 @@
+[
+  {"state": "IA", "date": "2025-07-07", "avg_basis": -0.29, "min_basis": -0.31, "max_basis": -0.27, "plant_count": 2},
+  {"state": "IA", "date": "2026-06-08", "avg_basis": -0.19, "min_basis": -0.22, "max_basis": -0.16, "plant_count": 2},
+  {"state": "IA", "date": "2026-07-06", "avg_basis": -0.15, "min_basis": -0.18, "max_basis": -0.12, "plant_count": 2},
+  {"state": "MO", "date": "2025-07-07", "avg_basis": -0.08, "min_basis": -0.08, "max_basis": -0.08, "plant_count": 1},
+  {"state": "MO", "date": "2026-06-08", "avg_basis": 0.02, "min_basis": 0.02, "max_basis": 0.02, "plant_count": 1},
+  {"state": "MO", "date": "2026-07-06", "avg_basis": 0.05, "min_basis": 0.05, "max_basis": 0.05, "plant_count": 1}
+]

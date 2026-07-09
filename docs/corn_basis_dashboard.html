@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Corn Basis Dashboard</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/corn_basis_dashboard.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Ethanol Producer Database</p>
+      <h1>Corn Basis Dashboard</h1>
+    </div>
+    <div class="status" id="statusMessage">Loading data...</div>
+  </header>
+
+  <main class="dashboard-shell">
+    <aside class="controls-panel" aria-label="Dashboard filters">
+      <section class="control-section">
+        <h2>Snapshot</h2>
+        <div class="button-row" role="group" aria-label="Quick date controls">
+          <button type="button" class="primary" id="currentButton">Current</button>
+          <button type="button" id="monthButton">1 Month Ago</button>
+          <button type="button" id="yearButton">1 Year Ago</button>
+        </div>
+        <label for="dateSelect">Historical Monday</label>
+        <select id="dateSelect"></select>
+      </section>
+
+      <section class="control-section">
+        <h2>Filters</h2>
+        <label for="plantSelect">Plant</label>
+        <select id="plantSelect"></select>
+
+        <label for="stateSelect">State</label>
+        <select id="stateSelect"></select>
+
+        <label for="ownershipSelect">Ownership</label>
+        <select id="ownershipSelect"></select>
+
+        <label for="technologySelect">Technology</label>
+        <select id="technologySelect"></select>
+
+        <label for="railSelect">Rail line</label>
+        <select id="railSelect"></select>
+      </section>
+    </aside>
+
+    <section class="main-panel">
+      <div class="summary-grid" aria-label="Basis summary">
+        <article class="summary-card">
+          <span>Average Basis</span>
+          <strong id="avgBasis">--</strong>
+        </article>
+        <article class="summary-card">
+          <span>Low Basis</span>
+          <strong id="lowBasis">--</strong>
+        </article>
+        <article class="summary-card">
+          <span>High Basis</span>
+          <strong id="highBasis">--</strong>
+        </article>
+        <article class="summary-card">
+          <span>Plant Count</span>
+          <strong id="plantCount">--</strong>
+        </article>
+      </div>
+
+      <section class="map-panel">
+        <div id="basisMap" aria-label="Corn basis map"></div>
+      </section>
+
+      <section class="lower-grid">
+        <div class="chart-panel">
+          <div class="panel-title">
+            <h2>Basis History</h2>
+            <span id="chartCaption">Select a plant, state, technology, or rail line.</span>
+          </div>
+          <canvas id="historyChart" height="170"></canvas>
+        </div>
+
+        <div class="table-panel">
+          <div class="panel-title">
+            <h2>Plant Details</h2>
+            <span id="rowCount">0 rows</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Plant</th>
+                  <th>State</th>
+                  <th>Owner</th>
+                  <th>Basis</th>
+                  <th>Flat</th>
+                  <th>Contract</th>
+                  <th>Technology</th>
+                  <th>Rail</th>
+                </tr>
+              </thead>
+              <tbody id="plantTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="js/corn_basis_dashboard.js"></script>
+</body>
+</html>

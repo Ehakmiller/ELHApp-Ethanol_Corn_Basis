@@ -1,0 +1,11 @@
+[
+  {"plant_id": "3608", "plant_name": "Golden Grain Energy LLC", "state": "IA", "technology": "ICM", "rail_lines": ["UP"], "date": "2025-07-07", "basis": -0.31, "flat_price": 3.72},
+  {"plant_id": "3608", "plant_name": "Golden Grain Energy LLC", "state": "IA", "technology": "ICM", "rail_lines": ["UP"], "date": "2026-06-08", "basis": -0.22, "flat_price": 3.86},
+  {"plant_id": "3608", "plant_name": "Golden Grain Energy LLC", "state": "IA", "technology": "ICM", "rail_lines": ["UP"], "date": "2026-07-06", "basis": -0.18, "flat_price": 3.92},
+  {"plant_id": "3620", "plant_name": "Green Plains Shenandoah LLC", "state": "IA", "technology": "ICM", "rail_lines": ["BNSF"], "date": "2025-07-07", "basis": -0.27, "flat_price": 3.76},
+  {"plant_id": "3620", "plant_name": "Green Plains Shenandoah LLC", "state": "IA", "technology": "ICM", "rail_lines": ["BNSF"], "date": "2026-06-08", "basis": -0.16, "flat_price": 3.91},
+  {"plant_id": "3620", "plant_name": "Green Plains Shenandoah LLC", "state": "IA", "technology": "ICM", "rail_lines": ["BNSF"], "date": "2026-07-06", "basis": -0.12, "flat_price": 3.98},
+  {"plant_id": "3649", "plant_name": "Mid-Missouri Energy LLC", "state": "MO", "technology": "Delta-T", "rail_lines": ["UP"], "date": "2025-07-07", "basis": -0.08, "flat_price": 3.95},
+  {"plant_id": "3649", "plant_name": "Mid-Missouri Energy LLC", "state": "MO", "technology": "Delta-T", "rail_lines": ["UP"], "date": "2026-06-08", "basis": 0.02, "flat_price": 4.08},
+  {"plant_id": "3649", "plant_name": "Mid-Missouri Energy LLC", "state": "MO", "technology": "Delta-T", "rail_lines": ["UP"], "date": "2026-07-06", "basis": 0.05, "flat_price": 4.15}
+]

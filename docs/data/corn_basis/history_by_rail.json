@@ -1,0 +1,8 @@
+[
+  {"rail_line": "BNSF", "date": "2025-07-07", "avg_basis": -0.27, "min_basis": -0.27, "max_basis": -0.27, "plant_count": 1},
+  {"rail_line": "BNSF", "date": "2026-06-08", "avg_basis": -0.16, "min_basis": -0.16, "max_basis": -0.16, "plant_count": 1},
+  {"rail_line": "BNSF", "date": "2026-07-06", "avg_basis": -0.12, "min_basis": -0.12, "max_basis": -0.12, "plant_count": 1},
+  {"rail_line": "UP", "date": "2025-07-07", "avg_basis": -0.195, "min_basis": -0.31, "max_basis": -0.08, "plant_count": 2},
+  {"rail_line": "UP", "date": "2026-06-08", "avg_basis": -0.1, "min_basis": -0.22, "max_basis": 0.02, "plant_count": 2},
+  {"rail_line": "UP", "date": "2026-07-06", "avg_basis": -0.065, "min_basis": -0.18, "max_basis": 0.05, "plant_count": 2}
+]
