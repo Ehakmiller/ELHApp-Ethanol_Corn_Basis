@@ -194,7 +194,8 @@ button.primary {
 .chart-panel canvas {
   display: block;
   width: 100% !important;
-  height: 260px !important;
+  height: 288px !important;
+  max-height: 288px !important;
 }
 
 .panel-title {
