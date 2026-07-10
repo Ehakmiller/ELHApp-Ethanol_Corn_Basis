@@ -1,5 +1,6 @@
 r2_upload/
 data/corn_basis/
+backfill_audit/
 __pycache__/
 *.pyc
 .DS_Store
