@@ -1,11 +1,19 @@
-const DATA_BASE_URL =
+﻿const R2_DATA_BASE_URL =
   "https://pub-e1ba77626f844f97953cd74102f37629.r2.dev/corn_basis";
+
+const LOCAL_DATA_BASE_URL = "../r2_upload/corn_basis";
+
+const DATA_BASE_URL = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+  ? LOCAL_DATA_BASE_URL
+  : R2_DATA_BASE_URL;
 
 const CONFIG = {
   DEFAULT_CENTER: [41.9, -93.5],
   DEFAULT_ZOOM: 5,
   BASIS_MIN: -0.5,
   BASIS_MAX: 0.5,
+  MIN_HISTORY_DATE_BASIS_COUNT: 100,
+  MIN_HISTORY_START_DATE: "2024-01-01",
 };
 
 const state = {
@@ -354,7 +362,8 @@ async function renderChart() {
   }
   if (requestId !== state.chartRequestId) return;
 
-  let rows = state.historyRows || [];
+  const coverage = historyDateCoverage();
+  let rows = (state.historyRows || []).filter((row) => coverage.eligibleDates.has(row.date));
   if (ctxInfo.type === "plant") {
     rows = rows.filter((row) => row.plant_id === ctxInfo.value);
   } else if (ctxInfo.type === "state") {
@@ -366,14 +375,34 @@ async function renderChart() {
   }
 
   const points = averageBasisByDate(rows);
-  drawChart(points, `${ctxInfo.label} basis history (${points.length} dates)`);
+  const minCount = CONFIG.MIN_HISTORY_DATE_BASIS_COUNT;
+  const removedCount = coverage.totalDateCount - coverage.eligibleDates.size;
+  drawChart(
+    points,
+    `${ctxInfo.label} basis history (${points.length} dates shown; ${removedCount} sparse dates hidden; dates require >${minCount} basis values)`
+  );
+}
+
+function historyDateCoverage() {
+  const countsByDate = new Map();
+  (state.historyRows || []).forEach((row) => {
+    const value = numeric(row.basis);
+    if (!row.date || row.date < CONFIG.MIN_HISTORY_START_DATE || value === null) return;
+    countsByDate.set(row.date, (countsByDate.get(row.date) || 0) + 1);
+  });
+  const eligibleDates = new Set(
+    [...countsByDate.entries()]
+      .filter(([, count]) => count > CONFIG.MIN_HISTORY_DATE_BASIS_COUNT)
+      .map(([date]) => date)
+  );
+  return { eligibleDates, totalDateCount: countsByDate.size };
 }
 
 function averageBasisByDate(rows) {
   const byDate = new Map();
   rows.forEach((row) => {
     const value = numeric(row.basis);
-    if (!row.date || value === null) return;
+    if (!row.date || row.date < CONFIG.MIN_HISTORY_START_DATE || value === null) return;
     const bucket = byDate.get(row.date) || { sum: 0, count: 0 };
     bucket.sum += value;
     bucket.count += 1;
@@ -536,3 +565,6 @@ async function init() {
 }
 
 init().catch(handleError);
+
+
+
